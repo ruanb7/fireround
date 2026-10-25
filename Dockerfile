@@ -21,7 +21,7 @@ RUN pnpm build && rm -rf ./data
 FROM build AS runtime
 ENV NODE_ENV=production \
     PORT=3000 \
-    HOSTNAME=0.0.0.0
+    HOSTNAME=::
 EXPOSE 3000
 COPY fly/start.sh /app/fly/start.sh
 RUN chmod +x /app/fly/start.sh

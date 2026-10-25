@@ -5,5 +5,5 @@ set -eu
 cd /app
 echo "fireround: migrating"
 pnpm db:migrate
-echo "fireround: starting on ${HOSTNAME:-0.0.0.0}:${PORT:-3000}"
-exec pnpm exec next start -H "${HOSTNAME:-0.0.0.0}" -p "${PORT:-3000}"
+echo "fireround: starting on [${HOSTNAME:-::}]:${PORT:-3000}"
+exec pnpm exec next start -H "${HOSTNAME:-::}" -p "${PORT:-3000}"

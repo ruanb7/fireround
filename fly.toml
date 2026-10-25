@@ -7,7 +7,9 @@ primary_region = "iad"
 
 [env]
   PORT = "3000"
-  HOSTNAME = "0.0.0.0"
+  # "::" binds dual-stack. Fly's proxy and health checks reach the machine over private IPv6,
+  # so a 0.0.0.0 (IPv4-only) bind answers "connection refused" to both.
+  HOSTNAME = "::"
   APP_ORIGIN = "https://fireround-otto.fly.dev"
   EDGAR_USER_AGENT = "fireround-otto/1.0 (ruan.botha.live@gmail.com)"
   DATABASE_DRIVER = "pg"
@@ -33,7 +35,9 @@ primary_region = "iad"
   timeout = "5s"
   grace_period = "90s"
   method = "GET"
-  path = "/"
+  # /home is the landing page and answers without the dashboard's Basic auth; "/" returns 401
+  # once DASHBOARD_PASSWORD is set, which Fly counts as a failed check.
+  path = "/home"
 
 [[vm]]
   size = "shared-cpu-1x"
