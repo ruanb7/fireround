@@ -16,6 +16,10 @@ primary_region = "iad"
   DATABASE_POOL_MAX = "3"
   RECONCILE_PROVIDER = "openrouter"
   RECONCILE_MODEL = "openai/gpt-6-luna"
+  # Firecrawl plan limits (lib/firecrawl-limiter.ts): Free 10/min and 2 concurrent. Raise to 90/5 on
+  # Hobby, 450/20 on Standard.
+  FIRECRAWL_RPM = "9"
+  FIRECRAWL_CONCURRENCY = "2"
 
 [http_service]
   internal_port = 3000

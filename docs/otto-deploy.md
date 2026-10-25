@@ -59,6 +59,16 @@ $lines = @("CRON_SECRET=$(memroy show fireround-cron-secret)", "DASHBOARD_PASSWO
 - A first deploy may also fail to allocate public IPs ("org_slug is only supported with
   private_v6"); `fly ips allocate-v6` and `fly ips allocate-v4 --shared` fix it.
 
+## Rate limits (the first sweep failed on them)
+
+Firecrawl's free plan allows 10 requests a minute and 2 concurrent browsers; Fireround's stages
+issue 4 to 10 calls at once with one retry, so the first forced sweep died with "Rate limit
+exceeded" after 12 pages and published nothing (96 credits spent, 0 rounds). This branch adds
+`lib/firecrawl-limiter.ts`, a global sliding-window limiter applied in `lib/firecrawl.ts`, driven
+by `FIRECRAWL_RPM` and `FIRECRAWL_CONCURRENCY` with a one-minute wait and retry on 429. Set them to
+the plan: Free 9/2, Hobby 90/5, Standard 450/20. On the free plan a seed sweep of roughly 100
+calls takes 10 to 15 minutes instead of failing in two.
+
 ## Operate
 
 ```bash
