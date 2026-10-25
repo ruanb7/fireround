@@ -44,10 +44,25 @@ $lines = @("CRON_SECRET=$(memroy show fireround-cron-secret)", "DASHBOARD_PASSWO
 ($lines -join "`n") | fly secrets import -a fireround-otto
 ```
 
+## Two Fly gotchas this deployment hit
+
+- **Health checks pass only on 2xx** (docs.fly.io/reference/configuration). With
+  `DASHBOARD_PASSWORD` set, `/`, `/home`, `/robots.txt` and every `/api/*` route answer 401, so
+  the first deploys timed out "waiting for health checks" and the proxy reported no healthy
+  instance. The "connection refused" text in `fly checks list` was stale output from the boot
+  window (migrations run before the server binds). Verified from inside the machine with node's
+  fetch (the slim image has no curl): only static assets return 200, so the check hits
+  `/favicon.ico`. The bind is `::` (dual-stack); Fly's docs ask for `0.0.0.0`, and either works.
+- **One machine.** A first deploy with an http service creates two machines for HA by default.
+  The in-process scheduler would then sweep twice an hour. Always `fly deploy --ha=false`, and
+  check `fly machines list` shows one.
+- A first deploy may also fail to allocate public IPs ("org_slug is only supported with
+  private_v6"); `fly ips allocate-v6` and `fly ips allocate-v4 --shared` fix it.
+
 ## Operate
 
 ```bash
-fly deploy --remote-only                      # from the repo root on otto-deploy
+fly deploy --remote-only --ha=false           # from the repo root on otto-deploy
 fly logs -a fireround-otto                    # "fireround: migrating" then "fireround: starting"
 # first sweep (the Lite schedule only sweeps Mondays 06:00 UTC)
 curl -H "Authorization: Bearer $(memroy show fireround-cron-secret)" "https://fireround-otto.fly.dev/api/cron/sweep?force=1"
