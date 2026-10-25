@@ -1,5 +1,6 @@
 import { savePageSnapshot } from "@fireround/core/snapshots";
 import { Firecrawl } from "firecrawl";
+import { describeLimiter, limitedCall, limiterEnabled } from "./firecrawl-limiter";
 
 let client: Firecrawl | null = null;
 
@@ -47,5 +48,16 @@ export function getFirecrawl(): Firecrawl {
     }
     return result;
   }) as Firecrawl["search"];
+  if (limiterEnabled()) {
+    // Wrap after the snapshot wrappers so every call, snapshot or not, goes through the limiter.
+    const target = client as unknown as Record<string, unknown>;
+    for (const name of ["scrape", "search", "map", "agent"]) {
+      const original = target[name];
+      if (typeof original !== "function") continue;
+      const fn = original as (...a: unknown[]) => Promise<unknown>;
+      target[name] = (...args: unknown[]) => limitedCall(() => Reflect.apply(fn, client, args));
+    }
+    console.log(describeLimiter());
+  }
   return client;
 }

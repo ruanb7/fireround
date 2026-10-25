@@ -35,20 +35,21 @@ async function acquire(): Promise<void> {
     }
     const waitMs = rpmOk ? 250 : Math.max(250, WINDOW_MS - (now - starts[0]) + 50);
     await new Promise<void>((resolve) => {
+      const wakeup = () => {
+        clearTimeout(t);
+        resolve();
+      };
       const t = setTimeout(() => {
         const i = waiters.indexOf(wakeup);
         if (i >= 0) waiters.splice(i, 1);
         resolve();
       }, waitMs);
-      const wakeup = () => {
-        clearTimeout(t);
-        resolve();
-      };
       waiters.push(wakeup);
     });
   }
 }
 
+/** Exactly one release per acquire. */
 function release() {
   inFlight = Math.max(0, inFlight - 1);
   wake();
@@ -75,20 +76,19 @@ export function describeLimiter(): string {
 export async function limitedCall<T>(fn: () => Promise<T>): Promise<T> {
   for (let attempt = 0; ; attempt++) {
     await acquire();
+    let out: T;
     try {
-      return await fn();
+      out = await fn();
     } catch (err) {
+      release();
       if (isRateLimited(err) && attempt < RETRIES) {
         console.warn(`firecrawl: rate limited, waiting ${WINDOW_MS / 1000}s (retry ${attempt + 1}/${RETRIES})`);
-        release();
         await new Promise((r) => setTimeout(r, WINDOW_MS + 1000));
         continue;
       }
       throw err;
-    } finally {
-      // Runs on return and on throw. On the retry path release() already ran before the wait, and
-      // `continue` skips this block's double-release because the loop re-enters acquire() only after
-      // the finally has run for the failed attempt — so release exactly once per acquire here too.
     }
+    release();
+    return out;
   }
 }
