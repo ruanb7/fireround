@@ -1,0 +1,11 @@
+node_modules
+.next
+data
+.env
+.env.*
+!.env.example
+.git
+.github
+docs/screenshots
+docs/demo.gif
+*.dump
