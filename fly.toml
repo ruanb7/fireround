@@ -18,8 +18,8 @@ primary_region = "iad"
   RECONCILE_MODEL = "openai/gpt-6-luna"
   # Firecrawl plan limits (lib/firecrawl-limiter.ts): Free 10/min and 2 concurrent. Raise to 90/5 on
   # Hobby, 450/20 on Standard.
-  FIRECRAWL_RPM = "9"
-  FIRECRAWL_CONCURRENCY = "2"
+  FIRECRAWL_RPM = "90"
+  FIRECRAWL_CONCURRENCY = "5"
 
 [http_service]
   internal_port = 3000
