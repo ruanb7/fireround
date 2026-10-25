@@ -37,7 +37,7 @@ primary_region = "iad"
   method = "GET"
   # /home is the landing page and answers without the dashboard's Basic auth; "/" returns 401
   # once DASHBOARD_PASSWORD is set, which Fly counts as a failed check.
-  path = "/home"
+  path = "C:/Program Files/Git/favicon.ico"
 
 [[vm]]
   size = "shared-cpu-1x"
